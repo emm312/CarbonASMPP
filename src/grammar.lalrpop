@@ -1,0 +1,40 @@
+use crate::ast::*;
+use crate::gen_instruction;
+use std::str::FromStr;
+
+grammar;
+
+pub CarbonPPProgram: Program = {
+    CarbonPPBody+ => Program(<>)
+}
+
+CarbonPPBody: ProgramBody = {
+    Instruction => ProgramBody::Instruction(<>),
+    Label => ProgramBody::Label(<>)
+}
+
+Instruction: Instruction = {
+    r"hlt|HLT" => gen_instruction!(InstructionTypes::Hlt;),
+    r"add|ADD" <src: RegisterOperand> <op1: RegisterOperand> <op2: RegisterOperand> => gen_instruction!(InstructionTypes::Add; src op1 op2),
+    r"sub|SUB" <src: RegisterOperand> <op1: RegisterOperand> <op2: RegisterOperand> => gen_instruction!(InstructionTypes::Sub; src op1 op2),
+    r"or|OR" <src: RegisterOperand> <op1: RegisterOperand> <op2: RegisterOperand> => gen_instruction!(InstructionTypes::Or; src op1 op2),
+    r"and|AND" <src: RegisterOperand> <op1: RegisterOperand> <op2: RegisterOperand> => gen_instruction!(InstructionTypes::And; src op1 op2),
+    r"nand|NAND" <src: RegisterOperand> <op1: RegisterOperand> <op2: RegisterOperand> => gen_instruction!(InstructionTypes::Nand; src op1 op2),
+    r"xor|XOR" <src: RegisterOperand> <op1: RegisterOperand> <op2: RegisterOperand> => gen_instruction!(InstructionTypes::Xor; src op1 op2),
+    r"ldi|LDI" <src: RegisterOperand> <val: ImmediateOperand> => gen_instruction!(InstructionTypes::Ldi; src val),
+    r"mst|MST" <src: RegisterOperand> <dst: RegisterOperand> => gen_instruction!(InstructionTypes::Mst; src dst),
+    r"mld|MLD" <src: RegisterOperand> <dst: RegisterOperand> => gen_instruction!(InstructionTypes::Mld; src dst),
+    r"brc|BRC" <dst: LabelOperand> <cond: ConditionOperand> => gen_instruction!(InstructionTypes::Brc; dst cond),
+    r"pst|PST" <dst: AddressOperand> <src: RegisterOperand> => gen_instruction!(InstructionTypes::Pst; dst src),
+    r"pld|PLD" <dst: AddressOperand> <src: RegisterOperand> => gen_instruction!(InstructionTypes::Pld; dst src),
+    r"cmp|CMP" <lhs: RegisterOperand> <rhs: RegisterOperand> => gen_instruction!(InstructionTypes::Cmp; lhs rhs),
+    r"mov|MOV" <dst: RegisterOperand> <src: RegisterOperand> => gen_instruction!(InstructionTypes::Mov; dst src)
+}
+
+ImmediateOperand: Operand = r"[0-9]+" => Operand::Imm(u8::from_str(<>).unwrap());
+AddressOperand: Operand = r"\$[0-9]+" => Operand::Address(u8::from_str(&{ let mut x = <>.to_string(); x.remove(0); x }).unwrap());
+LabelOperand: Operand = Label => Operand::Label(<>);
+RegisterOperand: Operand = r"(r|R)[0-9]+" => Operand::Reg(u8::from_str(&{ let mut x = <>.to_string(); x.remove(0); x }).unwrap());
+ConditionOperand: Operand = r"(eq|neq|lt|gt|gteq|lteq|even|jmp|EQ|NEQ|LT|GT|GTEQ|LTEQ|EVEN|JMP)" => Operand::Cond(Condition::from_str(<>));
+
+Label: String = r"\.[_a-zA-Z][_a-zA-Z0-9]+" => <>.to_string();

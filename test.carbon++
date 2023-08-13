@@ -1,0 +1,9 @@
+ldi r1 1
+ldi r2 1
+ldi r3 0
+.fib
+mov r3 r1
+add r1 r2 r1
+mov r2 r3
+pst $1 r1
+brc .fib jmp

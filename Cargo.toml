@@ -1,0 +1,13 @@
+[package]
+name = "carbonasmpp"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lalrpop-util = { version = "0.20.0", features = ["lexer"] }
+regex = "1.7.9" # jank fix to pin the regex version to one that works with lalrpop
+
+[build-dependencies]
+lalrpop = { version = "0.20.0", features = ["lexer"] }
